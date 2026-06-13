@@ -6,8 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/UrkoArtzeniega/Scenes/Escena0_Menu.unity
+    guid: 0effe268691631f4198751f5edd40504
+  - enabled: 1
+    path: Assets/UrkoArtzeniega/Scenes/Escena1_Planos.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/UrkoArtzeniega/Scenes/Escena2_Imagenes.unity
+    guid: 27e05b3bda5ef594a83d7ebc8703a27d
   m_configObjects:
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: cb5dcd1755a29cb43b6120988922ca16, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
