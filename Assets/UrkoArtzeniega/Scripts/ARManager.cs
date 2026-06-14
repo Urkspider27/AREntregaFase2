@@ -18,7 +18,7 @@ public class ARManager : MonoBehaviour
     public TMP_Dropdown comboPrefabs;
 
     [Header("Prefabs a Instanciar")]
-    public GameObject[] listaPrefabs; // Arrastra tus prefabs aquí en el inspector
+    public GameObject[] listaPrefabs; 
 
     private List<GameObject> objetosInstanciados = new List<GameObject>();
 
@@ -31,24 +31,38 @@ public class ARManager : MonoBehaviour
     {
         textNumPlanos.text = "NumPlanos= " + planeManager.trackables.count;
 
-        if (Input.touchCount > 0)
+        // Detección para PC
+        if (Input.GetMouseButtonDown(0))
+        {
+            // Evitar instanciar si el usuario está tocando la UI
+            if (EventSystem.current.IsPointerOverGameObject()) return;
+
+            LanzarRayoAR(Input.mousePosition);
+        }
+        // Detección para Móvil
+        else if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
 
-            // Evitar instanciar si el usuario está tocando un botón o el dropdown
-            if (EventSystem.current.IsPointerOverGameObject(touch.fingerId))
-                return;
-
             if (touch.phase == TouchPhase.Began)
             {
-                List<ARRaycastHit> hits = new List<ARRaycastHit>();
-                // Lanzar raycast contra los planos detectados
-                if (raycastManager.Raycast(touch.position, hits, TrackableType.PlaneWithinPolygon))
-                {
-                    Pose hitPose = hits[0].pose;
-                    InstanciarPrefabSeleccionado(hitPose.position, hitPose.rotation);
-                }
+                // Evitar instanciar si el usuario está tocando la UI
+                if (EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
+
+                LanzarRayoAR(touch.position);
             }
+        }
+    }
+
+    void LanzarRayoAR(Vector2 posicionPantalla)
+    {
+        List<ARRaycastHit> hits = new List<ARRaycastHit>();
+
+        // Lanzar raycast contra los planos detectados
+        if (raycastManager.Raycast(posicionPantalla, hits, TrackableType.PlaneWithinPolygon))
+        {
+            Pose hitPose = hits[0].pose;
+            InstanciarPrefabSeleccionado(hitPose.position, hitPose.rotation);
         }
     }
 
