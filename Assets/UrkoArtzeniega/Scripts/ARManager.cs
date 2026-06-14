@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using TMPro;
-using UnityEngine.UI;
-using UnityEngine.EventSystems; // Importante para no instanciar al tocar la UI
+using System.Collections.Generic;
 
 public class ARManager : MonoBehaviour
 {
@@ -13,42 +11,53 @@ public class ARManager : MonoBehaviour
     public ARPlaneManager planeManager;
 
     [Header("UI Elements")]
-    public TextMeshProUGUI textNumPlanos;
+    public TMPro.TextMeshProUGUI textNumPlanos;
     public Button btnBorrar;
-    public TMP_Dropdown comboPrefabs;
+    public TMPro.TMP_Dropdown comboPrefabs;
 
     [Header("Prefabs a Instanciar")]
-    public GameObject[] listaPrefabs; 
-
-    private List<GameObject> objetosInstanciados = new List<GameObject>();
+    public List<GameObject> listaPrefabs;
 
     void Start()
     {
-        btnBorrar.onClick.AddListener(BorrarObjetos);
+        // LIMPIEZA DRÁSTICA: Destruimos cualquier cámara fantasma del menú anterior
+        GameObject[] camarasEnEscena = GameObject.FindGameObjectsWithTag("MainCamera");
+        foreach (GameObject cam in camarasEnEscena)
+        {
+            if (cam.gameObject != Camera.main.gameObject && cam.transform.root.name.Contains("DontDestroyOnLoad"))
+            {
+                Destroy(cam.gameObject);
+            }
+        }
+
+        // Forzar inicialización de interfaz limpia
+        if (textNumPlanos != null)
+        {
+            textNumPlanos.text = "NumPlanos= 0";
+        }
     }
 
     void Update()
     {
-        textNumPlanos.text = "NumPlanos= " + planeManager.trackables.count;
+        // Actualizar el contador de planos detectados en tiempo real
+        if (textNumPlanos != null && planeManager != null)
+        {
+            textNumPlanos.text = "NumPlanos= " + planeManager.trackables.count;
+        }
 
-        // Detección para PC
+        // Detección para PC (Clic del ratón)
         if (Input.GetMouseButtonDown(0))
         {
-            // Evitar instanciar si el usuario está tocando la UI
-            if (EventSystem.current.IsPointerOverGameObject()) return;
-
+            if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
             LanzarRayoAR(Input.mousePosition);
         }
-        // Detección para Móvil
+        // Detección para Móvil (Toque táctil para el APK definitivo)
         else if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
-
             if (touch.phase == TouchPhase.Began)
             {
-                // Evitar instanciar si el usuario está tocando la UI
-                if (EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
-
+                if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(touch.fingerId)) return;
                 LanzarRayoAR(touch.position);
             }
         }
@@ -56,9 +65,9 @@ public class ARManager : MonoBehaviour
 
     void LanzarRayoAR(Vector2 posicionPantalla)
     {
-        List<ARRaycastHit> hits = new List<ARRaycastHit>();
+        if (raycastManager == null) return;
 
-        // Lanzar raycast contra los planos detectados
+        List<ARRaycastHit> hits = new List<ARRaycastHit>();
         if (raycastManager.Raycast(posicionPantalla, hits, TrackableType.PlaneWithinPolygon))
         {
             Pose hitPose = hits[0].pose;
@@ -68,22 +77,18 @@ public class ARManager : MonoBehaviour
 
     void InstanciarPrefabSeleccionado(Vector3 posicion, Quaternion rotacion)
     {
-        if (listaPrefabs.Length == 0) return;
+        if (comboPrefabs == null || listaPrefabs == null) return;
 
+        // Leer la posición del desplegable (0 = Rojo, 1 = Azul, 2 = Verde)
         int indiceSeleccionado = comboPrefabs.value;
-        GameObject prefabAInstanciar = listaPrefabs[indiceSeleccionado];
 
-        // Instanciar y guardar la referencia en la lista
-        GameObject nuevoObjeto = Instantiate(prefabAInstanciar, posicion, rotacion);
-        objetosInstanciados.Add(nuevoObjeto);
-    }
-
-    public void BorrarObjetos()
-    {
-        foreach (GameObject obj in objetosInstanciados)
+        if (indiceSeleccionado >= 0 && indiceSeleccionado < listaPrefabs.Count)
         {
-            Destroy(obj);
+            GameObject prefabAEscoger = listaPrefabs[indiceSeleccionado];
+            if (prefabAEscoger != null)
+            {
+                Instantiate(prefabAEscoger, posicion, rotacion);
+            }
         }
-        objetosInstanciados.Clear();
     }
 }
