@@ -6,52 +6,42 @@ using System.Collections.Generic;
 
 public class ARManager : MonoBehaviour
 {
-    [Header("AR Components")]
     public ARRaycastManager raycastManager;
     public ARPlaneManager planeManager;
 
-    [Header("UI Elements")]
     public TMPro.TextMeshProUGUI textNumPlanos;
     public Button btnBorrar;
     public TMPro.TMP_Dropdown comboPrefabs;
 
-    [Header("Prefabs a Instanciar")]
     public List<GameObject> listaPrefabs;
+
+    // Lista para trackear lo instanciado
+    private List<GameObject> cubosCreados = new List<GameObject>();
 
     void Start()
     {
-        // LIMPIEZA DRÁSTICA: Destruimos cualquier cámara fantasma del menú anterior
-        GameObject[] camarasEnEscena = GameObject.FindGameObjectsWithTag("MainCamera");
-        foreach (GameObject cam in camarasEnEscena)
-        {
-            if (cam.gameObject != Camera.main.gameObject && cam.transform.root.name.Contains("DontDestroyOnLoad"))
-            {
-                Destroy(cam.gameObject);
-            }
-        }
+        if (textNumPlanos != null) textNumPlanos.text = "NumPlanos= 0";
 
-        // Forzar inicialización de interfaz limpia
-        if (textNumPlanos != null)
+        // Asigna la funcion de borrar al boton
+        if (btnBorrar != null)
         {
-            textNumPlanos.text = "NumPlanos= 0";
+            btnBorrar.onClick.RemoveAllListeners();
+            btnBorrar.onClick.AddListener(BorrarTodosLosCubos);
         }
     }
 
     void Update()
     {
-        // Actualizar el contador de planos detectados en tiempo real
         if (textNumPlanos != null && planeManager != null)
         {
             textNumPlanos.text = "NumPlanos= " + planeManager.trackables.count;
         }
 
-        // Detección para PC (Clic del ratón)
         if (Input.GetMouseButtonDown(0))
         {
             if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
             LanzarRayoAR(Input.mousePosition);
         }
-        // Detección para Móvil (Toque táctil para el APK definitivo)
         else if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -70,8 +60,7 @@ public class ARManager : MonoBehaviour
         List<ARRaycastHit> hits = new List<ARRaycastHit>();
         if (raycastManager.Raycast(posicionPantalla, hits, TrackableType.PlaneWithinPolygon))
         {
-            Pose hitPose = hits[0].pose;
-            InstanciarPrefabSeleccionado(hitPose.position, hitPose.rotation);
+            InstanciarPrefabSeleccionado(hits[0].pose.position, hits[0].pose.rotation);
         }
     }
 
@@ -79,16 +68,25 @@ public class ARManager : MonoBehaviour
     {
         if (comboPrefabs == null || listaPrefabs == null) return;
 
-        // Leer la posición del desplegable (0 = Rojo, 1 = Azul, 2 = Verde)
-        int indiceSeleccionado = comboPrefabs.value;
-
-        if (indiceSeleccionado >= 0 && indiceSeleccionado < listaPrefabs.Count)
+        int indice = comboPrefabs.value;
+        if (indice >= 0 && indice < listaPrefabs.Count)
         {
-            GameObject prefabAEscoger = listaPrefabs[indiceSeleccionado];
-            if (prefabAEscoger != null)
+            if (listaPrefabs[indice] != null)
             {
-                Instantiate(prefabAEscoger, posicion, rotacion);
+                // Guardamos el cubo en la lista al crearlo
+                GameObject nuevoCubo = Instantiate(listaPrefabs[indice], posicion, rotacion);
+                cubosCreados.Add(nuevoCubo);
             }
         }
+    }
+
+    // Funcion que vacia la escena
+    public void BorrarTodosLosCubos()
+    {
+        foreach (GameObject cubo in cubosCreados)
+        {
+            if (cubo != null) Destroy(cubo);
+        }
+        cubosCreados.Clear();
     }
 }
