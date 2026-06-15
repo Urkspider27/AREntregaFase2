@@ -20,7 +20,7 @@ public class ARManager : MonoBehaviour
 
     void Start()
     {
-        if (textNumPlanos != null) textNumPlanos.text = "NumPlanos= 0";
+        if (textNumPlanos != null) textNumPlanos.text = "NumPlanos = 0";
 
         // Asigna la funcion de borrar al boton
         if (btnBorrar != null)
@@ -34,7 +34,7 @@ public class ARManager : MonoBehaviour
     {
         if (textNumPlanos != null && planeManager != null)
         {
-            textNumPlanos.text = "NumPlanos= " + planeManager.trackables.count;
+            textNumPlanos.text = "NumPlanos = " + planeManager.trackables.count;
         }
 
         if (Input.GetMouseButtonDown(0))

@@ -8,14 +8,14 @@ public class ControladorMenu : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.name == "MuroRojo" || other.gameObject.name == "Escena1_Transportar") dentroRojo = true;
-        else if (other.gameObject.name == "MuroAzul" || other.gameObject.name == "Escena2_Transportar") dentroAzul = true;
+        if (other.gameObject.name == "MuroRojo") dentroRojo = true;
+        else if (other.gameObject.name == "MuroAzul") dentroAzul = true;
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.name == "MuroRojo" || other.gameObject.name == "Escena1_Transportar") dentroRojo = false;
-        else if (other.gameObject.name == "MuroAzul" || other.gameObject.name == "Escena2_Transportar") dentroAzul = false;
+        if (other.gameObject.name == "MuroRojo") dentroRojo = false;
+        else if (other.gameObject.name == "MuroAzul") dentroAzul = false;
     }
 
     void OnGUI()
